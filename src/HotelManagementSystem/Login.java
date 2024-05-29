@@ -4,6 +4,11 @@
  */
 package HotelManagementSystem;
 import javax.swing.JOptionPane;
+import com.mysql.jdbc.PreparedStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+import java.sql.ResultSet;
 
 /**
  *
@@ -11,8 +16,6 @@ import javax.swing.JOptionPane;
  */
 public class Login extends javax.swing.JFrame {
     
-    String username = "admin";
-    String password = "admin123";
 
     /**
      * Creates new form Login
@@ -138,7 +141,54 @@ public class Login extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        cekUsernamePassword();
+        Connection con = null;
+        PreparedStatement pst = null;
+        ResultSet rs = null;
+
+        try {
+            // Open connection
+            Class.forName("com.mysql.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/hotelmanagement?useSSL=false", "root", "");
+
+            // Accept username and password
+            String username = jTextFieldUsername.getText();
+            String password = new String(jPassword.getPassword());
+
+            // MySQL query to run
+            String sql = "SELECT * FROM admin WHERE username=? AND password=?";
+            pst = (PreparedStatement) con.prepareStatement(sql);
+            pst.setString(1, username);
+            pst.setString(2, password);
+            rs = pst.executeQuery();
+
+            if (rs.next()) {
+                // Jika username dan password benar maka akan lanjut ke dashbord
+                dispose(); // untuk menutup laman login
+                DashboardAdmin dashboardadmin = new DashboardAdmin();
+                dashboardadmin.setVisible(true);
+            } else {
+                // If username and password are incorrect, show a message
+                JOptionPane.showMessageDialog(this, "Username or password wrong.");
+                jTextFieldUsername.setText("");
+                jPassword.setText("");
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (pst != null) {
+                    pst.close();
+                }
+                if (con != null) {
+                    con.close();
+                }
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
         
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -146,7 +196,7 @@ public class Login extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
+         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
@@ -178,21 +228,6 @@ public class Login extends javax.swing.JFrame {
     }
 
 //    Utils
-    private void cekUsernamePassword(){
-        if(jTextFieldUsername.getText().equalsIgnoreCase(username) && jPassword.getText().equalsIgnoreCase(password)){
-            JOptionPane.showMessageDialog(rootPane, "Selamat datang admin !");
-            dispose();
-            
-            DashboardAdmin dashboard = new DashboardAdmin();
-            dashboard.setVisible(true);
-        }else if(jTextFieldUsername.getText().isEmpty() && jPassword.getText().isEmpty()){
-            JOptionPane.showMessageDialog(rootPane, "Isi Username dan password !!!");
-        }else{
-            JOptionPane.showMessageDialog(rootPane, "Username atau password yang anda masukan salah !");
-        }
-        
-        
-    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
